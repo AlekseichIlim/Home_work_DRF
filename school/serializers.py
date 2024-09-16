@@ -8,10 +8,11 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = '__all__'
+#         поля которые будут в ответе Postman
 
 
 class LessonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lesson
-        fields = '__all__'
+        fields = ('title', 'course', )
