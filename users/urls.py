@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from users.views import UserViewSet, PaymentsCreateAPIView
+from users.views import UserViewSet, PaymentsCreateAPIView, PaymentsListAPIView
 from users.apps import UsersConfig
 
 
@@ -12,4 +12,5 @@ router.register('', UserViewSet)
 
 urlpatterns = [
     path('payments/create/', PaymentsCreateAPIView.as_view(), name='payments_create'),
+    path('payments/', PaymentsListAPIView.as_view(), name='payments_list')
 ] + router.urls
