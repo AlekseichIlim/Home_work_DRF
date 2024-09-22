@@ -1,22 +1,33 @@
 from rest_framework import serializers
 
-from school.models import Course, Lesson
+from school.models import Course, Lesson, Subscription
+from school.validators import validate_site
 
 
 class LessonSerializer(serializers.ModelSerializer):
+    link_to_video = serializers.CharField(validators=[validate_site])
+
     class Meta:
         model = Lesson
         fields = (
             "id",
             "title",
             "course",
-            "owner"
+            "owner",
+            "link_to_video",
         )
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = '__all__'
 
 
 class CourseSerializer(serializers.ModelSerializer):
     count_lessons = serializers.SerializerMethodField()
     lesson = LessonSerializer(many=True, read_only=True)
+    subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -27,3 +38,12 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_count_lessons(self, instance):
 
         return instance.lesson.all().count()
+
+    def get_subscription(self, instance):
+
+        if instance.subscription.exists():
+            return "Оформлена подписка"
+        else:
+            return "Не оформлена подписка"
+
+

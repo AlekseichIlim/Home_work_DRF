@@ -1,20 +1,23 @@
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import (
     CreateAPIView,
     ListAPIView,
     RetrieveAPIView,
     UpdateAPIView,
-    DestroyAPIView,
+    DestroyAPIView, get_object_or_404,
 )
 
-from school.models import Course, Lesson
-from school.serializers import CourseSerializer, LessonSerializer
+from school.models import Course, Lesson, Subscription
+from school.paginations import CustomPagination
+from school.serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
 from users.permissions import IsModerPermission, IsOwnerPermission
 
 
 class CourseViewSet(ModelViewSet):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
+    pagination_class = CustomPagination
 
     def perform_create(self, serializer):
         """Назначение владельца курса"""
@@ -47,6 +50,7 @@ class LessonCreateAPIView(CreateAPIView):
 class LessonListAPIView(ListAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
+    pagination_class = CustomPagination
 
 
 class LessonRetrieveAPIView(RetrieveAPIView):
@@ -65,3 +69,22 @@ class LessonDestroyAPIView(DestroyAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = (~IsModerPermission, IsOwnerPermission,)
+
+
+class SubscriptionAPIView(CreateAPIView):
+    serializer_class = SubscriptionSerializer
+    queryset = Subscription.objects.all()
+
+    def post(self, *args, **kwargs):
+        user = self.request.user
+        course_id = self.request.data.get("course")
+        course = get_object_or_404(Course, pk=course_id)
+        sub_item = Subscription.objects.all().filter(user=user).filter(course=course)
+
+        if sub_item.exists():
+            sub_item.delete()
+            message = "Подписка отключена"
+        else:
+            Subscription.objects.create(user=user, course=course)
+            message = "Подписка включена"
+        return Response({"message": message})
