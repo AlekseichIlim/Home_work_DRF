@@ -5,7 +5,7 @@ from school.validators import validate_site
 
 
 class LessonSerializer(serializers.ModelSerializer):
-    link_to_video = serializers.CharField(validators=[validate_site])
+    link_to_video = serializers.CharField(validators=[validate_site], read_only=True)
 
     class Meta:
         model = Lesson
@@ -25,9 +25,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
-    count_lessons = serializers.SerializerMethodField()
+    count_lessons = serializers.SerializerMethodField(read_only=True)
     lesson = LessonSerializer(many=True, read_only=True)
-    subscription = serializers.SerializerMethodField()
+    subscription = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Course
