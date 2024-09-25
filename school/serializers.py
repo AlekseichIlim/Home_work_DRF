@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from school.models import Course, Lesson, Subscription
 from school.validators import validate_site
+from users.serializers import UserSerializer
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -39,11 +40,8 @@ class CourseSerializer(serializers.ModelSerializer):
 
         return instance.lesson.all().count()
 
-    def get_subscription(self, instance):
-
-        if instance.subscription.exists():
+    def get_subscription(self, obj):
+        user = self.context['request'].user
+        if Subscription.objects.filter(user=user, course=obj).exists():
             return "Оформлена подписка"
-        else:
-            return "Не оформлена подписка"
-
-
+        return "Не оформлена подписка"
