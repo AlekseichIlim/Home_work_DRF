@@ -55,12 +55,14 @@ class Payments(models.Model):
         related_name="payments",
     )
     amount = models.IntegerField(default=0, verbose_name="сумма оплаты")
-    way = models.CharField(
-        max_length=20, choices=WAY_CHOICES, verbose_name="способ оплаты"
-    )
+    # way = models.CharField(
+    #     max_length=20, choices=WAY_CHOICES, verbose_name="способ оплаты"
+    # )
+    session_id = models.CharField(max_length=255, **NULLABLE, verbose_name='Id сессии')
+    link = models.URLField(max_length=400, **NULLABLE, verbose_name='Ссылка на оплату')
 
     def __str__(self):
-        return f"{self.user} {self.date_pay} оплатил {self.amount}"
+        return f"{self.user} {self.date_pay} оплатил"
 
     class Meta:
         verbose_name = "Платеж"
