@@ -24,6 +24,7 @@ class Course(models.Model):
         related_name="course",
         **NULLABLE,
     )
+    price = models.IntegerField(default=100000, verbose_name='цена')
 
     def __str__(self):
         return f"{self.title}"
@@ -57,6 +58,7 @@ class Lesson(models.Model):
         **NULLABLE,
         related_name="lesson",
     )
+    price = models.IntegerField(default=10000, verbose_name='цена')
 
     def __str__(self):
         return f"{self.title}"
