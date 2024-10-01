@@ -4,13 +4,15 @@ from rest_framework.generics import (
     ListAPIView,
     DestroyAPIView,
     UpdateAPIView,
-    RetrieveAPIView,
+    RetrieveAPIView, get_object_or_404,
 )
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 
+from school.models import Course, Lesson
 from users.models import User, Payments
 from users.serializers import UserSerializer, PaymentsSerializer
+from users.services import create_stripe_price, create_stripe_session, create_stripe_product
 
 
 class UserViewSet(ModelViewSet):
@@ -52,6 +54,24 @@ class PaymentsCreateAPIView(CreateAPIView):
     serializer_class = PaymentsSerializer
     queryset = Payments.objects.all()
 
+    def perform_create(self, serializer):
+        payment = serializer.save(user=self.request.user)
+
+        if payment.course:
+            product = payment.course
+            payment.amount = product.price
+            create_stripe_product(product)
+        else:
+            product = payment.lesson
+            payment.amount = product.price
+            create_stripe_product(product)
+
+        price = create_stripe_price(payment.amount, product.title)
+        session_id, payment_link = create_stripe_session(price)
+        payment.session_id = session_id
+        payment.link = payment_link
+        payment.save()
+
 
 class PaymentsListAPIView(ListAPIView):
     serializer_class = PaymentsSerializer
@@ -60,6 +80,11 @@ class PaymentsListAPIView(ListAPIView):
     filterset_fields = (
         "course",
         "lesson",
-        "way",
+        "user",
     )
-    ordering_fields = ("date_pay", "amount")
+    ordering_fields = ("date_pay", "user")
+
+
+
+
+
