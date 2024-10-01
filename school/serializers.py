@@ -16,6 +16,7 @@ class LessonSerializer(serializers.ModelSerializer):
             "course",
             "owner",
             "link_to_video",
+            "price"
         )
 
 
