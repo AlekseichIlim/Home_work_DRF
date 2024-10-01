@@ -1,3 +1,5 @@
+from django.utils.decorators import method_decorator
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import (
@@ -12,6 +14,12 @@ from school.models import Course, Lesson, Subscription
 from school.paginations import CustomPagination
 from school.serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
 from users.permissions import IsModerPermission, IsOwnerPermission
+from drf_yasg.utils import swagger_auto_schema
+
+
+@method_decorator(name='list', decorator=swagger_auto_schema(operation_description="Выводит список курсов"))
+@method_decorator(name='create', decorator=swagger_auto_schema(
+    operation_description="Создание курса, доступно всем пользователям не модераторам"))
 
 
 class CourseViewSet(ModelViewSet):
