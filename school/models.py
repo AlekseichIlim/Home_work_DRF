@@ -25,6 +25,7 @@ class Course(models.Model):
         **NULLABLE,
     )
     price = models.IntegerField(default=100000, verbose_name='цена')
+    status = models.CharField(max_length=25, default='Создан', verbose_name='статус')
 
     def __str__(self):
         return f"{self.title}"
