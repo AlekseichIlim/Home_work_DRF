@@ -1,3 +1,6 @@
+import json
+from datetime import datetime
+
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,6 +16,8 @@ from rest_framework.generics import (
 from school.models import Course, Lesson, Subscription
 from school.paginations import CustomPagination
 from school.serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
+from school.task import mailing
+from users.models import User
 from users.permissions import IsModerPermission, IsOwnerPermission
 from drf_yasg.utils import swagger_auto_schema
 
@@ -20,8 +25,6 @@ from drf_yasg.utils import swagger_auto_schema
 @method_decorator(name='list', decorator=swagger_auto_schema(operation_description="Выводит список курсов"))
 @method_decorator(name='create', decorator=swagger_auto_schema(
     operation_description="Создание курса, доступно всем пользователям не модераторам"))
-
-
 class CourseViewSet(ModelViewSet):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
@@ -42,6 +45,19 @@ class CourseViewSet(ModelViewSet):
         elif self.action == "delete":
             self.permission_classes = (~IsModerPermission, IsOwnerPermission,)
         return super().get_permissions()
+
+    def perform_update(self, serializer):
+        """Обновление курса, при этом пользователям у которых есть подписка на обновления, приходит письмо"""
+        course = serializer.save()
+        datetime_update = datetime.now()
+        course.status = f'Обновлен {datetime_update.strftime('%d.%m.%Y %H:%M')}'
+        course.save()
+        subscriptions = Subscription.objects.all().filter(course=course)
+        title = str(course.title)
+        email_list = []
+        for subscription in subscriptions:
+            email_list.append(subscription.user.email)
+        mailing.delay(title, email_list)
 
 
 class LessonCreateAPIView(CreateAPIView):
